@@ -94,7 +94,6 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          npm install -g pnpm
           pnpm install
 
       - uses: LimLLL/tauri-action-renameArtifacts@v0.5.18
@@ -111,7 +110,6 @@ jobs:
           args: ${{ matrix.args }}
           updaterJsonPreferNsis: true
           retryAttempts: 3
-          tauriScript: 'pnpm'
           renameArtifacts: 'BHZH_Project_Management'
 
   modify-latest-json:
