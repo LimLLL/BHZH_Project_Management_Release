@@ -87,7 +87,9 @@ jobs:
           key: ${{ matrix.args }}
 
       - name: Install frontend dependencies
-        run: npm install
+        run: |
+          npm install -g pnpm
+          pnpm install
 
       - uses: LimLLL/tauri-action-renameArtifacts@v0.5.18
         env:
