@@ -111,6 +111,7 @@ jobs:
           args: ${{ matrix.args }}
           updaterJsonPreferNsis: true
           retryAttempts: 3
+          tauriScript: 'pnpm'
           renameArtifacts: 'BHZH_Project_Management'
 
   modify-latest-json:
