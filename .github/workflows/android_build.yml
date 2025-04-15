@@ -98,5 +98,5 @@ jobs:
       - name: Add APK to pending release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload app-v${{steps.package-version.outputs.current-version}} ./src-tauri/gen/android/app/build/outputs/apk/universal/release/BHZH_Project_Management_${{steps.package-version.outputs.current-version}}_aarch64.apk
+        run: gh release upload "App v${{steps.package-version.outputs.current-version}}" ./src-tauri/gen/android/app/build/outputs/apk/universal/release/BHZH_Project_Management_${{steps.package-version.outputs.current-version}}_aarch64.apk
 
