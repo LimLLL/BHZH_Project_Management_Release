@@ -1,4 +1,4 @@
-name: 'publish'
+name: 'Android Build'
 on:
   push:
     branches:
