@@ -115,5 +115,5 @@ jobs:
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/octet-stream" \
               --data-binary "@./src-tauri/gen/android/app/build/outputs/apk/universal/release/BHZH_Project_Management_${{steps.package-version.outputs.current-version}}_aarch64.apk" \
-              "https://uploads.github.com/repos/${REPO}/releases/$RELEASE_ID/assets?name=latest.json"
+              "https://uploads.github.com/repos/${REPO}/releases/$RELEASE_ID/assets?name=BHZH_Project_Management_${{steps.package-version.outputs.current-version}}_aarch64.apk"
 
