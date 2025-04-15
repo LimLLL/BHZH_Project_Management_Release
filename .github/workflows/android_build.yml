@@ -115,8 +115,10 @@ jobs:
       - name: Add APK to pending release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.package-version.outputs.current-version}}
-          name: App v${{ steps.package-version.outputs.current-version}}
+          # tag_name: v${{ steps.package-version.outputs.current-version}}
+          # name: App v${{ steps.package-version.outputs.current-version}}
+          tag_name: v0.0.1
+          name: App v0.0.1
           draft: true
           generate_release_notes: false
           files: |
