@@ -116,6 +116,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.package-version.outputs.current-version}}
+          name: App v${{ steps.package-version.outputs.current-version}}
+          draft: true
+          generate_release_notes: false
           files: |
             ./src-tauri/gen/android/app/build/outputs/apk/universal/release/BHZH_Project_Management_${{ steps.package-version.outputs.current-version}}_aarch64.apk
 
