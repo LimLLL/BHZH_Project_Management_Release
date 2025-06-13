@@ -85,6 +85,8 @@ jobs:
         run: pnpm install
 
       - name: Build Tauri App
+        env:
+          NODE_ENV: test
         run: pnpm tauri build ${{ matrix.args }}
 
       - name: Collect bundles
