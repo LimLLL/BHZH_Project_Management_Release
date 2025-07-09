@@ -1,10 +1,12 @@
-name: "Unpack and Build and Publish"
+name: "Release Build and Publish"
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - 'version.json'  # 只在 version.json 更改时触发
 
 jobs:
   unpack-and-publish:
@@ -28,40 +30,55 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install unzip utility (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y unzip
-
-      - name: Install unzip utility (MacOS)
-        if: runner.os == 'macOS'
-        run: brew install unzip
-
-      - name: Unzip code
-        run: unzip -o -P ${{ secrets.ZIP_PASSWORD }} compressed_code.zip
+      - name: Get Gitea source code (Unix)
+        if: runner.os != 'Windows'
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_ACCESS_TOKEN }}
+          GITEA_REPO_URL: ${{ secrets.GITEA_REPO_URL }} # 例如 "https://gitea.example.com/username/repo.git"
+        run: |
+          # 克隆 Gitea 仓库（使用 token 进行认证）
+          git clone -b test "https://${GITEA_TOKEN}@${GITEA_REPO_URL#https://}" source_code
+          
+          # 复制所有需要的文件到当前工作目录
+          cp -r source_code/* .
+      
+      - name: Get Gitea source code (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_ACCESS_TOKEN }}
+          GITEA_REPO_URL: ${{ secrets.GITEA_REPO_URL }} # 例如 "https://gitea.example.com/username/repo.git"
+        run: |
+          # 提取主机名和路径
+          $repoUrl = $env:GITEA_REPO_URL
+          $repoUrl = $repoUrl -replace "^https://", ""
+          
+          # 克隆 Gitea 仓库（使用 token 进行认证）
+          git clone -b test "https://$env:GITEA_TOKEN@$repoUrl" source_code
+          
+          # 复制所有需要的文件到当前工作目录
+          Copy-Item -Path "source_code\*" -Destination "." -Recurse -Force
 
       - name: Modify Cargo.toml (macOS)
         if: runner.os == 'macOS'
         shell: bash
         run: |
           sed -i '' 's|tauri = { version = "2", features = \["devtools", "test"\] }|tauri = { version = "2", features = \[\] }|g' src-tauri/Cargo.toml
-          echo "Modified Cargo.toml:"
-          cat src-tauri/Cargo.toml
+          echo "Modified Cargo.toml"
 
       - name: Modify Cargo.toml (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           (Get-Content src-tauri/Cargo.toml) -replace 'tauri = { version = "2", features = \["devtools", "test"\] }', 'tauri = { version = "2", features = [] }' | Set-Content src-tauri/Cargo.toml
-          Write-Output "Modified Cargo.toml:"
-          Get-Content src-tauri/Cargo.toml
-
+          Write-Output "Modified Cargo.toml"
+          
       - name: Modify Cargo.toml (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
           sed -i 's|tauri = { version = "2", features = \["devtools", "test"\] }|tauri = { version = "2", features = \[\] }|g' src-tauri/Cargo.toml
-          echo "Modified Cargo.toml:"
-          cat src-tauri/Cargo.toml
+          echo "Modified Cargo.toml"
 
       - name: Install dependencies (Ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -98,6 +115,7 @@ jobs:
 
       - uses: LimLLL/tauri-action-renameArtifacts@v0.5.18
         env:
+          NODE_ENV: test
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -176,22 +194,3 @@ jobs:
               -H "Content-Type: application/octet-stream" \
               --data-binary "@latest.json" \
               "https://uploads.github.com/repos/${REPO}/releases/$RELEASE_ID/assets?name=latest.json"
-  cleanup:
-    needs: unpack-and-publish
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Delete compressed_code.zip
-        run: |
-          rm -f compressed_code.zip
-          echo "Deleted compressed_code.zip"
-      - name: Commit deletion
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add compressed_code.zip
-          git commit -m "Delete compressed_code.zip [skip ci]"
-          git push
